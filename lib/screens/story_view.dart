@@ -15,13 +15,14 @@ import 'package:story_genie/widgets/shared/scrollable_column.dart';
 import 'package:story_genie/widgets/shared/spacing.dart';
 import 'package:story_genie/widgets/app_loader.dart';
 import 'package:story_genie/widgets/app_button.dart';
+import 'package:story_genie/widgets/story_share_button.dart';
+import 'package:story_genie/widgets/story_title_display.dart';
 
 class StoryView extends StatefulWidget {
   final File image;
   final StoryParams storyParams;
 
-  const StoryView({Key? key, required this.image, required this.storyParams})
-    : super(key: key);
+  const StoryView({super.key, required this.image, required this.storyParams});
 
   @override
   State<StoryView> createState() => _StoryViewState();
@@ -32,6 +33,7 @@ class _StoryViewState extends State<StoryView> {
   bool isBusy = false;
   IFailure? failure;
   String story = '';
+  String storyTitle = '';
 
   @override
   void initState() {
@@ -42,11 +44,14 @@ class _StoryViewState extends State<StoryView> {
   Future<void> _fetchStory() async {
     try {
       setState(() => isBusy = true);
-      String prompt =
-          'Create a story from items in this list: ${widget.storyParams.items}. '
-          'The story should be a ${widget.storyParams.genre} story. '
-          'The story MUST be ${widget.storyParams.parsedLength} long. '
-          'Return the story as plain text only, without any markdown formatting, asterisks, or special characters for formatting.';
+
+      // Generate story title first
+      storyTitle = await _aiService.generateStoryTitle(
+        widget.storyParams.items,
+        widget.storyParams.genre,
+      );
+
+      // Generate the story
       story = await _aiService.fetchStoryDetail(widget.storyParams);
     } on IFailure catch (e) {
       failure = e;
@@ -64,6 +69,18 @@ class _StoryViewState extends State<StoryView> {
           style: AppTextStyles.semiBold16,
         ),
         centerTitle: true,
+        actions: [
+          // Share button
+          if (story.isNotEmpty && !isBusy)
+            StoryShareButton(
+              story: story,
+              genre: widget.storyParams.genre,
+              onShare: () {
+                // You can add analytics or additional logic here
+                print('Story shared!');
+              },
+            ),
+        ],
       ),
       body: ScrollableColumn(
         children: [
@@ -97,22 +114,36 @@ class _StoryViewState extends State<StoryView> {
                     );
                   }
 
-                  return DefaultTextStyle(
-                    style: AppTextStyles.regular14.copyWith(
-                      color:
-                          Theme.of(context).brightness == Brightness.dark
-                              ? AppColors.white
-                              : AppColors.black,
-                    ),
-                    child: AnimatedTextKit(
-                      totalRepeatCount: 1,
-                      animatedTexts: [
-                        TyperAnimatedText(
-                          story,
-                          speed: const Duration(milliseconds: 20),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Display AI-generated title
+                      if (storyTitle.isNotEmpty)
+                        StoryTitleDisplay(
+                          title: storyTitle,
+                          genre: widget.storyParams.genre,
                         ),
-                      ],
-                    ),
+                      // Story content
+                      Expanded(
+                        child: DefaultTextStyle(
+                          style: AppTextStyles.regular14.copyWith(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.white
+                                    : AppColors.black,
+                          ),
+                          child: AnimatedTextKit(
+                            totalRepeatCount: 1,
+                            animatedTexts: [
+                              TyperAnimatedText(
+                                story,
+                                speed: const Duration(milliseconds: 20),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),

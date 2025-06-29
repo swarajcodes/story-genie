@@ -12,13 +12,13 @@ class StoryParams {
   String get parsedLength {
     switch (length.toLowerCase()) {
       case 'short':
-        return 'at least 3 paragraphs';
+        return 'at least 1 paragraph (100-150 words)';
       case 'medium':
-        return 'at least 5 paragraphs';
+        return 'at least 2 paragraphs (200-300 words)';
       case 'long':
-        return 'at least 9 paragraphs';
+        return 'at least 3 paragraphs (400-500 words)';
       default:
-        return 'at least 3 paragraphs';
+        return 'at least 1 paragraph (100-150 words)';
     }
   }
 }

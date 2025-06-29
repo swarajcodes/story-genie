@@ -34,6 +34,7 @@ class _ImageSelectorViewState extends State<ImageSelectorView> {
   String genre = AppConstants.genres.first;
   String length = AppConstants.storyLength.first;
   bool isBusy = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

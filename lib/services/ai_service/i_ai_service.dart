@@ -8,4 +8,9 @@ abstract class IAIService {
   Stream<String> streamStoryDetail(StoryParams storyParams);
 
   Future<String> fetchStoryDetail(StoryParams storyParams);
+
+  // New methods for enhanced features
+  Future<String> generateStoryTitle(List<String> items, String genre);
+
+  Future<String> continueStory(String existingStory, String direction);
 }
